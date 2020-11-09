@@ -7,7 +7,7 @@
 		"gtest_main",
 		"pthread"
 	],
-	"release版编译选项":"#-O2 -Wall -std=c++11",
+	"release版编译选项":"#-O0 -Wall -std=c++11",
 	"release静态库列表":[
 		
 	],
@@ -37,5 +37,5 @@
 	],
 	"项目UUID":"d97c80c9-86a3-4e26-acc0-d119aa30eda1",
 	"项目名称":"message",
-	"项目路径":"/home/workspace/tmp"
+	"项目路径":"/home/ruanjian/workspace/project_pre/message"
 }
