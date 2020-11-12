@@ -1,43 +1,6 @@
 #include "msg_record.h"
 
 namespace my_util {
-//////////////////////// Mutex /////////////////////////
-Mutex::Mutex(void) 
-{
-    int ret = ::pthread_mutex_init(&mutex_, NULL);
-    if (ret != 0) {
-        std::cerr << "Mutex::Mutex()pthread_mutex_init: " << strerror(ret) << std::endl;
-        return ;
-    }
-}
-
-Mutex::~Mutex(void)
-{
-    int ret = ::pthread_mutex_destroy(&mutex_);
-    if (ret != 0) {
-        std::cerr << "Mutex::~Mutex()pthread_mutex_destroy: " << strerror(ret) << std::endl;
-        return ;
-    }
-}
-
-int 
-Mutex::lock(void)
-{
-    return  ::pthread_mutex_lock(&mutex_);
-}
-
-int 
-Mutex::trylock(void)
-{
-    return ::pthread_mutex_trylock(&mutex_);
-}
-
-int 
-Mutex::unlock(void)
-{
-    return ::pthread_mutex_unlock(&mutex_);
-}
-
 //////////////////////////////////////////////
 // 默认标准输出函数
 int output_to_stdout(const string &msg)

@@ -4,23 +4,6 @@
 #include "basic_head.h"
 
 namespace my_util {
-
-////////////////////////// Mutex /////////////////////////////////////////////
-class Mutex {
-public:
-    Mutex(void);
-    virtual ~Mutex(void);
-
-    virtual int lock(void);
-    virtual int trylock(void);
-    virtual int unlock(void);
-
-    virtual int get_errno(void) { return 0;};
-private:
-    int errno_;
-    pthread_mutex_t mutex_;
-};
-
 //////////////////////////////////////////////////////////////////////////////
 enum InfoLevel {
     LOG_LEVEL_TRACE,
@@ -47,7 +30,7 @@ int output_to_stdout(const string &msg);
 int output_to_stderr(const string &msg);
 
 /////////////////////////////////////////////////////
-
+// 如果是多线程使用同一个回调函数来写消息， 在函数中需要处理消息的同步写。
 typedef int (*msg_to_stream_callback)(const string &);
 
 class MsgRecord {
