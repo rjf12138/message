@@ -1,6 +1,6 @@
 #include "msg_record.h"
 
-namespace my_util {
+namespace my_utils {
 //////////////////////////////////////////////
 // 默认标准输出函数
 int output_to_stdout(const string &msg)

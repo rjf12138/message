@@ -3,7 +3,7 @@
 
 #include "basic_head.h"
 
-namespace my_util {
+namespace my_utils {
 //////////////////////////////////////////////////////////////////////////////
 enum InfoLevel {
     LOG_LEVEL_TRACE,
