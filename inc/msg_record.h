@@ -60,8 +60,8 @@ private:
 
 #define LOG_TRACE(...)  this->print_msg(LOG_LEVEL_TRACE, __LINE__, __FILE__, __VA_ARGS__)
 #define LOG_DEBUG(...)  this->print_msg(LOG_LEVEL_DEBUG, __LINE__, __FILE__, __VA_ARGS__)
-#define LOG_INFO(...)  this->print_msg(LOG_LEVEL_INFO, __LINE__, __FILE__, __VA_ARGS__)
-#define LOG_WARNING(...)  this->print_msg(LOG_LEVEL_WARN, __LINE__, __FILE__, __VA_ARGS__)
+#define LOG_INFO(...)   this->print_msg(LOG_LEVEL_INFO, __LINE__, __FILE__, __VA_ARGS__)
+#define LOG_WARN(...)   this->print_msg(LOG_LEVEL_WARN, __LINE__, __FILE__, __VA_ARGS__)
 #define LOG_ERROR(...)  this->print_msg(LOG_LEVEL_ERROR, __LINE__, __FILE__, __VA_ARGS__)
 #define LOG_FATAL(...)  this->print_msg(LOG_LEVEL_FATAL, __LINE__, __FILE__, __VA_ARGS__)
 
