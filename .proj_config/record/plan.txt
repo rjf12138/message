@@ -1,0 +1,2 @@
+1. InfoLevel 改为 MsgLevel
+2. get_msg_attr 改为 get_msg
