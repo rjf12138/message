@@ -19,6 +19,7 @@ struct MsgContent {
     int which_line;
     string when;
     string which_file;
+    string msg_func;
     string msg_info;
 };
 
@@ -38,8 +39,8 @@ public:
     MsgRecord(void);
     virtual ~MsgRecord(void);
 
-    virtual void print_msg(InfoLevel level, int line, string file_name, const char *format, ...);
-    virtual string get_msg_attr(InfoLevel level, int line, string file_name, const char *format, ...);
+    virtual void print_msg(InfoLevel level, int line, string file_name, string func, const char *format, ...);
+    virtual string get_msg_attr(InfoLevel level, int line, string file_name, string func, const char *format, ...);
     virtual string assemble_msg(void);
     string level_convert(enum InfoLevel level);
 
@@ -58,14 +59,24 @@ private:
     msg_to_stream_callback msg_to_stream_fatal_;
 };
 
-#define LOG_TRACE(...)  this->print_msg(LOG_LEVEL_TRACE, __LINE__, __FILE__, __VA_ARGS__)
-#define LOG_DEBUG(...)  this->print_msg(LOG_LEVEL_DEBUG, __LINE__, __FILE__, __VA_ARGS__)
-#define LOG_INFO(...)   this->print_msg(LOG_LEVEL_INFO, __LINE__, __FILE__, __VA_ARGS__)
-#define LOG_WARN(...)   this->print_msg(LOG_LEVEL_WARN, __LINE__, __FILE__, __VA_ARGS__)
-#define LOG_ERROR(...)  this->print_msg(LOG_LEVEL_ERROR, __LINE__, __FILE__, __VA_ARGS__)
-#define LOG_FATAL(...)  this->print_msg(LOG_LEVEL_FATAL, __LINE__, __FILE__, __VA_ARGS__)
+#define LOG_TRACE(...)  this->print_msg(LOG_LEVEL_TRACE, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
+#define LOG_DEBUG(...)  this->print_msg(LOG_LEVEL_DEBUG, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
+#define LOG_INFO(...)   this->print_msg(LOG_LEVEL_INFO, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
+#define LOG_WARN(...)   this->print_msg(LOG_LEVEL_WARN, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
+#define LOG_ERROR(...)  this->print_msg(LOG_LEVEL_ERROR, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
+#define LOG_FATAL(...)  this->print_msg(LOG_LEVEL_FATAL, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
 
-#define GET_MSG(...)  this->get_msg_attr(LOG_LEVEL_INFO, __LINE__, __FILE__, __VA_ARGS__)
+#define GET_MSG(...)  this->get_msg_attr(LOG_LEVEL_INFO, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
+
+extern MsgRecord g_log_msg;
+#define LOG_GLOBAL_TRACE(...)  g_log_msg.print_msg(LOG_LEVEL_TRACE, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
+#define LOG_GLOBAL_DEBUG(...)  g_log_msg.print_msg(LOG_LEVEL_DEBUG, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
+#define LOG_GLOBAL_INFO(...)   g_log_msg.print_msg(LOG_LEVEL_INFO, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
+#define LOG_GLOBAL_WARN(...)   g_log_msg.print_msg(LOG_LEVEL_WARN, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
+#define LOG_GLOBAL_ERROR(...)  g_log_msg.print_msg(LOG_LEVEL_ERROR, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
+#define LOG_GLOBAL_FATAL(...)  g_log_msg.print_msg(LOG_LEVEL_FATAL, __LINE__, __FILE__, __FUNCTION__, __VA_ARGS__)
+#define SET_GLOBAL_CALLBACK(LEVEL, FUNC)  g_log_msg.set_stream_func(LEVEL, FUNC)
+
 }
 
 #endif

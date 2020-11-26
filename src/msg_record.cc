@@ -18,6 +18,10 @@ int output_to_stderr(const string &msg)
     return 0;
 }
 //////////////////////////////////////////////
+// 全局消息输出
+MsgRecord g_log_msg;
+
+//////////////////////////////////////////////
 
 MsgRecord::MsgRecord(void)
 : msg_to_stream_trace_(output_to_stdout),
@@ -82,7 +86,7 @@ MsgRecord::get_stream_func(InfoLevel level)
 }
 
 void
-MsgRecord::print_msg(InfoLevel level, int line, string file_name, const char *format, ...)
+MsgRecord::print_msg(InfoLevel level, int line, string file_name, string func, const char *format, ...)
 {
     uint32_t msg_len = strlen(format)+1;
     char *msg_buff = new char[msg_len];
@@ -101,20 +105,22 @@ MsgRecord::print_msg(InfoLevel level, int line, string file_name, const char *fo
     tmp_msg.info_level = level;
     tmp_msg.when = strtime;
     tmp_msg.msg_info = msg_buff;
+    tmp_msg.msg_func = func;
     tmp_msg.which_line = line;
     tmp_msg.which_file = basename(file_name.c_str());
     msg_info_.push_back(tmp_msg);
-    delete msg_buff;
     // 组装缓存中的所有消息
     string print_msg = this->assemble_msg();
     // 向流中输出消息
     this->get_stream_func(level)(print_msg);
 
+    delete msg_buff;
+
     return ;
 }
 
 string 
-MsgRecord::get_msg_attr(InfoLevel level, int line, string file_name, const char *format, ...)
+MsgRecord::get_msg_attr(InfoLevel level, int line, string file_name, string func, const char *format, ...)
 {
     char *msg_buff = new char[1024];
     memset(msg_buff, 0, 1024);
@@ -132,6 +138,7 @@ MsgRecord::get_msg_attr(InfoLevel level, int line, string file_name, const char 
     tmp_msg.info_level = level;
     tmp_msg.when = strtime;
     tmp_msg.msg_info = msg_buff;
+    tmp_msg.msg_func = func;
     tmp_msg.which_line = line;
     tmp_msg.which_file = basename(file_name.c_str());
     msg_info_.push_back(tmp_msg);
@@ -149,8 +156,8 @@ MsgRecord::assemble_msg(void)
     ostringstream ostr;
     for (std::size_t i = 0; i < msg_info_.size(); ++i) {
         ostr << "[" << msg_info_[i].when << "]";
-        ostr << "[" << msg_info_[i].which_line << "]";
-        ostr << "[" << msg_info_[i].which_file << "] ";
+        ostr << "[" << msg_info_[i].msg_func << "]";
+        ostr << "[" << msg_info_[i].which_file << ":" << msg_info_[i].which_line << "] ";
         ostr << "[" << level_convert(msg_info_[i].info_level) << "]  ";
         ostr << msg_info_[i].msg_info << std::endl;
     }
