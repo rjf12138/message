@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../../output/release/lib/libmessage.a  CMakeFiles/message.dir/msg_record.cc.o
+/usr/bin/ranlib ../../output/release/lib/libmessage.a
