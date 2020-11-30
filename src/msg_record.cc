@@ -17,11 +17,9 @@ int output_to_stderr(const string &msg)
 
     return 0;
 }
-//////////////////////////////////////////////
-// 全局消息输出
-MsgRecord g_log_msg;
 
-//////////////////////////////////////////////
+
+MsgRecord MsgRecord::g_log_msg;
 
 MsgRecord::MsgRecord(void)
 : msg_to_stream_trace_(output_to_stdout),
@@ -114,7 +112,7 @@ MsgRecord::print_msg(InfoLevel level, int line, string file_name, string func, c
     // 向流中输出消息
     this->get_stream_func(level)(print_msg);
 
-    delete msg_buff;
+    delete[] msg_buff;
 
     return ;
 }
@@ -122,12 +120,12 @@ MsgRecord::print_msg(InfoLevel level, int line, string file_name, string func, c
 string 
 MsgRecord::get_msg_attr(InfoLevel level, int line, string file_name, string func, const char *format, ...)
 {
-    char *msg_buff = new char[1024];
-    memset(msg_buff, 0, 1024);
+    char *msg_buff = new char[2048];
+    memset(msg_buff, 0, 2048);
 
     va_list arg_ptr;
     va_start(arg_ptr,format);
-    vsnprintf(msg_buff, 1024,format, arg_ptr);
+    vsnprintf(msg_buff, 2048,format, arg_ptr);
     va_end(arg_ptr);
 
     char strtime[65] = {0};
@@ -143,7 +141,7 @@ MsgRecord::get_msg_attr(InfoLevel level, int line, string file_name, string func
     tmp_msg.which_file = basename(file_name.c_str());
     msg_info_.push_back(tmp_msg);
 
-    delete msg_buff;
+    delete[] msg_buff;
     msg_buff = nullptr;
     
     // 组装缓存中的所有消息
