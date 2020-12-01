@@ -3,7 +3,7 @@
 namespace my_utils {
 //////////////////////////////////////////////
 // 默认标准输出函数
-int output_to_stdout(const string &msg)
+int output_to_stdout(const string &msg, void *arg)
 {
     std::cout << msg << std::endl;
 
@@ -11,7 +11,7 @@ int output_to_stdout(const string &msg)
 }
 
 // 默认标准出错函数
-int output_to_stderr(const string &msg)
+int output_to_stderr(const string &msg, void *arg)
 {
     std::cerr << msg << std::endl;
 
@@ -26,6 +26,7 @@ MsgRecord::MsgRecord(void)
   msg_to_stream_debug_(output_to_stdout),
   msg_to_stream_info_(output_to_stdout),
   msg_to_stream_warn_(output_to_stderr),
+  msg_to_stream_error_(output_to_stderr),
   msg_to_stream_fatal_(output_to_stderr)
 {
 
@@ -106,14 +107,19 @@ MsgRecord::print_msg(InfoLevel level, int line, string file_name, string func, c
     tmp_msg.msg_func = func;
     tmp_msg.which_line = line;
     tmp_msg.which_file = basename(file_name.c_str());
-    msg_info_.push_back(tmp_msg);
-    // 组装缓存中的所有消息
-    string print_msg = this->assemble_msg();
-    // 向流中输出消息
-    this->get_stream_func(level)(print_msg);
+
+    ostringstream ostr;
+    ostr << "[" << tmp_msg.when << "]";
+    ostr << "[" << tmp_msg.msg_func << "]";
+    ostr << "[" << tmp_msg.which_file << ":" << tmp_msg.which_line << "]";
+    ostr << "[" << level_convert(tmp_msg.info_level) << "]: ";
+    ostr << tmp_msg.msg_info;
 
     delete[] msg_buff;
+    msg_buff = nullptr;
 
+    this->get_stream_func(level)(ostr.str());
+    
     return ;
 }
 
@@ -139,27 +145,17 @@ MsgRecord::get_msg_attr(InfoLevel level, int line, string file_name, string func
     tmp_msg.msg_func = func;
     tmp_msg.which_line = line;
     tmp_msg.which_file = basename(file_name.c_str());
-    msg_info_.push_back(tmp_msg);
+
+    ostringstream ostr;
+    ostr << "[" << tmp_msg.when << "]";
+    ostr << "[" << tmp_msg.msg_func << "]";
+    ostr << "[" << tmp_msg.which_file << ":" << tmp_msg.which_line << "]";
+    ostr << "[" << level_convert(tmp_msg.info_level) << "]: ";
+    ostr << tmp_msg.msg_info;
 
     delete[] msg_buff;
     msg_buff = nullptr;
-    
-    // 组装缓存中的所有消息
-    return this->assemble_msg();
-}
 
-string
-MsgRecord::assemble_msg(void)
-{
-    ostringstream ostr;
-    for (std::size_t i = 0; i < msg_info_.size(); ++i) {
-        ostr << "[" << msg_info_[i].when << "]";
-        ostr << "[" << msg_info_[i].msg_func << "]";
-        ostr << "[" << msg_info_[i].which_file << ":" << msg_info_[i].which_line << "] ";
-        ostr << "[" << level_convert(msg_info_[i].info_level) << "]  ";
-        ostr << msg_info_[i].msg_info << std::endl;
-    }
-    msg_info_.clear();
     return ostr.str();
 }
 
