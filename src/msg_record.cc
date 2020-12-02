@@ -3,7 +3,7 @@
 namespace my_utils {
 //////////////////////////////////////////////
 // 默认标准输出函数
-int output_to_stdout(const string &msg, void *arg)
+int output_to_stdout(const string &msg)
 {
     std::cout << msg << std::endl;
 
@@ -11,13 +11,52 @@ int output_to_stdout(const string &msg, void *arg)
 }
 
 // 默认标准出错函数
-int output_to_stderr(const string &msg, void *arg)
+int output_to_stderr(const string &msg)
 {
     std::cerr << msg << std::endl;
 
     return 0;
 }
 
+// 设置颜色
+string 
+set_string_color(const string &str, StringColor color)
+{
+    string output_str;
+    switch (color)
+    {
+        case StringColor_Blue:
+        {
+            output_str = "\033[34m";
+        } break;
+        case StringColor_Green:
+        {
+            output_str = "\033[32m";
+        } break;
+        case StringColor_Red: 
+        {
+            output_str = "\033[31m";
+        } break;
+        case StringColor_Yellow:
+        {
+            output_str = "\033[33m";
+        } break;
+        case StringColor_Cyan:
+        {
+            output_str = "\033[36m";
+        } break;
+        case StringColor_Magenta:
+        {
+            output_str = "\033[35m";
+        } break;
+        default:
+            return str;
+    }
+
+    output_str += str + "\033[0m";
+
+    return output_str;
+}
 
 MsgRecord MsgRecord::g_log_msg;
 
@@ -87,13 +126,11 @@ MsgRecord::get_stream_func(InfoLevel level)
 void
 MsgRecord::print_msg(InfoLevel level, int line, string file_name, string func, const char *format, ...)
 {
-    uint32_t msg_len = strlen(format)+1;
-    char *msg_buff = new char[msg_len];
-    memset(msg_buff, 0, msg_len);
+    char msg_buff[4096] = {0};
 
     va_list arg_ptr;
     va_start(arg_ptr,format);
-    vsprintf(msg_buff, format, arg_ptr);
+    vsnprintf(msg_buff, 4096, format, arg_ptr);
     va_end(arg_ptr);
 
     char strtime[65] = {0};
@@ -109,16 +146,38 @@ MsgRecord::print_msg(InfoLevel level, int line, string file_name, string func, c
     tmp_msg.which_file = basename(file_name.c_str());
 
     ostringstream ostr;
-    ostr << "[" << tmp_msg.when << "]";
-    ostr << "[" << tmp_msg.msg_func << "]";
+    ostr << "\033[36m[" << tmp_msg.when << "]\033[0m";
+    ostr << "\033[35m[" << tmp_msg.msg_func << "]";
     ostr << "[" << tmp_msg.which_file << ":" << tmp_msg.which_line << "]";
-    ostr << "[" << level_convert(tmp_msg.info_level) << "]: ";
-    ostr << tmp_msg.msg_info;
+    ostr << "[" << level_convert(tmp_msg.info_level) << "\033[35m]:\033[0m ";
 
-    delete[] msg_buff;
-    msg_buff = nullptr;
+    switch (tmp_msg.info_level) {
+        case LOG_LEVEL_TRACE:
+            ostr << set_string_color(tmp_msg.msg_info, StringColor_None);
+            break;
+        case LOG_LEVEL_DEBUG:
+            ostr << set_string_color(tmp_msg.msg_info, StringColor_Blue);
+            break;
+        case LOG_LEVEL_INFO:
+            ostr << set_string_color(tmp_msg.msg_info, StringColor_Green);
+            break;
+        case LOG_LEVEL_WARN:
+            ostr << set_string_color(tmp_msg.msg_info, StringColor_Yellow);
+            break;
+        case LOG_LEVEL_ERROR:
+            ostr <<  set_string_color(tmp_msg.msg_info, StringColor_Red);
+            break;
+        case LOG_LEVEL_FATAL:
+            ostr <<  set_string_color(tmp_msg.msg_info, StringColor_Red);
+            break;
+    }
 
-    this->get_stream_func(level)(ostr.str());
+    msg_to_stream_callback output_callback = this->get_stream_func(level);
+    if (output_callback != nullptr) {
+        output_callback(ostr.str());
+    } else {
+        output_to_stderr(set_string_color("MsgRecord ouput callback function is nullptr!", StringColor_Yellow));
+    }
     
     return ;
 }
@@ -147,11 +206,31 @@ MsgRecord::get_msg_attr(InfoLevel level, int line, string file_name, string func
     tmp_msg.which_file = basename(file_name.c_str());
 
     ostringstream ostr;
-    ostr << "[" << tmp_msg.when << "]";
-    ostr << "[" << tmp_msg.msg_func << "]";
+    ostr << "\033[36m[" << tmp_msg.when << "]\033[0m";
+    ostr << "\033[35m[" << tmp_msg.msg_func << "]";
     ostr << "[" << tmp_msg.which_file << ":" << tmp_msg.which_line << "]";
-    ostr << "[" << level_convert(tmp_msg.info_level) << "]: ";
-    ostr << tmp_msg.msg_info;
+    ostr << "[" << level_convert(tmp_msg.info_level) << "\033[35m]:\033[0m ";
+
+    switch (tmp_msg.info_level) {
+        case LOG_LEVEL_TRACE:
+            ostr << set_string_color(tmp_msg.msg_info, StringColor_None);
+            break;
+        case LOG_LEVEL_DEBUG:
+            ostr << set_string_color(tmp_msg.msg_info, StringColor_Blue);
+            break;
+        case LOG_LEVEL_INFO:
+            ostr << set_string_color(tmp_msg.msg_info, StringColor_Green);
+            break;
+        case LOG_LEVEL_WARN:
+            ostr << set_string_color(tmp_msg.msg_info, StringColor_Yellow);
+            break;
+        case LOG_LEVEL_ERROR:
+            ostr <<  set_string_color(tmp_msg.msg_info, StringColor_Red);
+            break;
+        case LOG_LEVEL_FATAL:
+            ostr <<  set_string_color(tmp_msg.msg_info, StringColor_Red);
+            break;
+    }
 
     delete[] msg_buff;
     msg_buff = nullptr;
@@ -165,17 +244,17 @@ MsgRecord::level_convert(enum InfoLevel level)
     switch(level)
     {
         case LOG_LEVEL_TRACE:
-            return "TRACE";
+            return "\033[32mTRACE\033[0m";
         case LOG_LEVEL_DEBUG:
-            return "DEBUG";
+            return "\033[32mDEBUG\033[0m";
         case LOG_LEVEL_INFO:
-            return "INFO";
+            return "\033[32mINFO\033[0m";
         case LOG_LEVEL_WARN:
-            return "WARN";
+            return "\033[33mWARN\033[0m";
         case LOG_LEVEL_ERROR:
-            return "ERROR";
+            return "\033[31mERROR\033[0m";
         case LOG_LEVEL_FATAL:
-            return "FATAL";
+            return "\033[31;1mFATAL\033[0m";
     }
 
     return "UNKNOWN_LOG_LEVEL";
