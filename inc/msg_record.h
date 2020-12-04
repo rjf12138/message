@@ -54,6 +54,8 @@ public:
 
     virtual void print_msg(InfoLevel level, int line, string file_name, string func, const char *format, ...);
     virtual string get_msg_attr(InfoLevel level, int line, string file_name, string func, const char *format, ...);
+
+    void assemble_msg(ostringstream &ostr, const MsgContent &msg, bool is_color_enable = false);
     string level_convert(enum InfoLevel level);
 
     void set_stream_func(InfoLevel level, msg_to_stream_callback func);

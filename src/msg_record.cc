@@ -145,34 +145,15 @@ MsgRecord::print_msg(InfoLevel level, int line, string file_name, string func, c
     tmp_msg.which_line = line;
     tmp_msg.which_file = basename(file_name.c_str());
 
-    ostringstream ostr;
-    ostr << "\033[36m[" << tmp_msg.when << "]\033[0m";
-    ostr << "\033[35m[" << tmp_msg.msg_func << "]";
-    ostr << "[" << tmp_msg.which_file << ":" << tmp_msg.which_line << "]";
-    ostr << "[" << level_convert(tmp_msg.info_level) << "\033[35m]:\033[0m ";
+    msg_to_stream_callback output_callback = this->get_stream_func(level);
 
-    switch (tmp_msg.info_level) {
-        case LOG_LEVEL_TRACE:
-            ostr << set_string_color(tmp_msg.msg_info, StringColor_None);
-            break;
-        case LOG_LEVEL_DEBUG:
-            ostr << set_string_color(tmp_msg.msg_info, StringColor_Blue);
-            break;
-        case LOG_LEVEL_INFO:
-            ostr << set_string_color(tmp_msg.msg_info, StringColor_Green);
-            break;
-        case LOG_LEVEL_WARN:
-            ostr << set_string_color(tmp_msg.msg_info, StringColor_Yellow);
-            break;
-        case LOG_LEVEL_ERROR:
-            ostr <<  set_string_color(tmp_msg.msg_info, StringColor_Red);
-            break;
-        case LOG_LEVEL_FATAL:
-            ostr <<  set_string_color(tmp_msg.msg_info, StringColor_Red);
-            break;
+    ostringstream ostr; // 输出到终端的是带有颜色设置的
+    if (output_callback == output_to_stderr || output_callback == output_to_stdout) {
+        this->assemble_msg(ostr, tmp_msg, true);
+    } else {
+        this->assemble_msg(ostr, tmp_msg, false);
     }
 
-    msg_to_stream_callback output_callback = this->get_stream_func(level);
     if (output_callback != nullptr) {
         output_callback(ostr.str());
     } else {
@@ -185,12 +166,12 @@ MsgRecord::print_msg(InfoLevel level, int line, string file_name, string func, c
 string 
 MsgRecord::get_msg_attr(InfoLevel level, int line, string file_name, string func, const char *format, ...)
 {
-    char *msg_buff = new char[2048];
-    memset(msg_buff, 0, 2048);
+    char *msg_buff = new char[4096];
+    memset(msg_buff, 0, 4096);
 
     va_list arg_ptr;
     va_start(arg_ptr,format);
-    vsnprintf(msg_buff, 2048,format, arg_ptr);
+    vsnprintf(msg_buff, 4096,format, arg_ptr);
     va_end(arg_ptr);
 
     char strtime[65] = {0};
@@ -206,36 +187,52 @@ MsgRecord::get_msg_attr(InfoLevel level, int line, string file_name, string func
     tmp_msg.which_file = basename(file_name.c_str());
 
     ostringstream ostr;
-    ostr << "\033[36m[" << tmp_msg.when << "]\033[0m";
-    ostr << "\033[35m[" << tmp_msg.msg_func << "]";
-    ostr << "[" << tmp_msg.which_file << ":" << tmp_msg.which_line << "]";
-    ostr << "[" << level_convert(tmp_msg.info_level) << "\033[35m]:\033[0m ";
-
-    switch (tmp_msg.info_level) {
-        case LOG_LEVEL_TRACE:
-            ostr << set_string_color(tmp_msg.msg_info, StringColor_None);
-            break;
-        case LOG_LEVEL_DEBUG:
-            ostr << set_string_color(tmp_msg.msg_info, StringColor_Blue);
-            break;
-        case LOG_LEVEL_INFO:
-            ostr << set_string_color(tmp_msg.msg_info, StringColor_Green);
-            break;
-        case LOG_LEVEL_WARN:
-            ostr << set_string_color(tmp_msg.msg_info, StringColor_Yellow);
-            break;
-        case LOG_LEVEL_ERROR:
-            ostr <<  set_string_color(tmp_msg.msg_info, StringColor_Red);
-            break;
-        case LOG_LEVEL_FATAL:
-            ostr <<  set_string_color(tmp_msg.msg_info, StringColor_Red);
-            break;
-    }
+    this->assemble_msg(ostr, tmp_msg, false);
 
     delete[] msg_buff;
     msg_buff = nullptr;
 
     return ostr.str();
+}
+
+void 
+MsgRecord::assemble_msg(ostringstream &ostr, const MsgContent &msg, bool is_color_enable)
+{
+    if (is_color_enable) {
+        ostr << "\033[36m[" << msg.when << "]\033[0m";
+        ostr << "\033[35m[" << msg.msg_func << "]";
+        ostr << "[" << msg.which_file << ":" << msg.which_line << "]";
+        ostr << "[" << level_convert(msg.info_level) << "\033[35m]:\033[0m ";
+
+        switch (msg.info_level) {
+            case LOG_LEVEL_TRACE:
+                ostr << set_string_color(msg.msg_info, StringColor_None);
+                break;
+            case LOG_LEVEL_DEBUG:
+                ostr << set_string_color(msg.msg_info, StringColor_Blue);
+                break;
+            case LOG_LEVEL_INFO:
+                ostr << set_string_color(msg.msg_info, StringColor_Green);
+                break;
+            case LOG_LEVEL_WARN:
+                ostr << set_string_color(msg.msg_info, StringColor_Yellow);
+                break;
+            case LOG_LEVEL_ERROR:
+                ostr <<  set_string_color(msg.msg_info, StringColor_Red);
+                break;
+            case LOG_LEVEL_FATAL:
+                ostr <<  set_string_color(msg.msg_info, StringColor_Red);
+                break;
+        }
+    } else {
+        ostr << "[" << msg.when << "]";
+        ostr << "[" << msg.msg_func << "]";
+        ostr << "[" << msg.which_file << ":" << msg.which_line << "]";
+        ostr << "[" << level_convert(msg.info_level) << "]: ";
+        ostr << msg.msg_info;
+    }
+    
+    return ;
 }
 
 string 
