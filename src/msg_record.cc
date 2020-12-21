@@ -177,7 +177,7 @@ MsgRecord::print_msg(InfoLevel level, int line, string file_name, string func, c
 }
 
 string 
-MsgRecord::get_msg_attr(InfoLevel level, int line, string file_name, string func, const char *format, ...)
+MsgRecord::get_msg(InfoLevel level, int line, string file_name, string func, const char *format, ...)
 {
     char *msg_buff = new char[4096];
     memset(msg_buff, 0, 4096);
