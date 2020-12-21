@@ -61,7 +61,8 @@ set_string_color(const string &str, StringColor color)
 MsgRecord MsgRecord::g_log_msg;
 
 MsgRecord::MsgRecord(void)
-: msg_to_stream_trace_(output_to_stdout),
+: print_level_(LOG_LEVEL_LOW),
+  msg_to_stream_trace_(output_to_stdout),
   msg_to_stream_debug_(output_to_stdout),
   msg_to_stream_info_(output_to_stdout),
   msg_to_stream_warn_(output_to_stderr),
@@ -123,9 +124,21 @@ MsgRecord::get_stream_func(InfoLevel level)
     return nullptr;
 }
 
+void 
+MsgRecord::set_print_level(InfoLevel level)
+{
+    print_level_ = level;
+    
+    return ;
+}
+
 void
 MsgRecord::print_msg(InfoLevel level, int line, string file_name, string func, const char *format, ...)
 {
+    if (level < print_level_) { // 低于 print_level 的将不会被输出
+        return ;
+    }
+
     char msg_buff[4096] = {0};
 
     va_list arg_ptr;
@@ -223,6 +236,8 @@ MsgRecord::assemble_msg(ostringstream &ostr, const MsgContent &msg, bool is_colo
             case LOG_LEVEL_FATAL:
                 ostr <<  set_string_color(msg.msg_info, StringColor_Red);
                 break;
+            default:
+                ostr << "Unknown Log Level" << endl;
         }
     } else {
         ostr << "[" << msg.when << "]";
@@ -252,9 +267,11 @@ MsgRecord::level_convert(enum InfoLevel level)
             return "\033[31mERROR\033[0m";
         case LOG_LEVEL_FATAL:
             return "\033[31;1mFATAL\033[0m";
+        default:
+            return "Unknown Log Level";
     }
 
-    return "UNKNOWN_LOG_LEVEL";
+    return "Unknown Log Level";
 }
 
 }
