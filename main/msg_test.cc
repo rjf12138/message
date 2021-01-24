@@ -2,6 +2,24 @@
 
 using namespace my_utils;
 
+class MsgTest : public MsgRecord {
+public:
+    MsgTest()
+    {
+        LOG_INFO("Start");
+    }
+
+    virtual ~MsgTest()
+    {
+        LOG_INFO("End");
+    }
+
+    void log_print(void)
+    {
+        LOG_INFO("print");
+    }
+};
+
 void print_msg(void)
 {
     for (int i = 0; i < 3; ++i) {
@@ -58,6 +76,9 @@ int main(void)
     SET_GLOBAL_PRINT_LEVEL(LOG_LEVEL_MAX);
     cout << "===============LOG_LEVEL_MAX=======================" << endl;
     print_msg();
+
+    MsgTest m_test;
+    m_test.log_print();
 
     return 0;
 }
